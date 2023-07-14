@@ -1,0 +1,39 @@
+openssl genrsa -des3 -out abel-bou.key 4096
+
+openssl req -new -key abel-bou.key -out abel-bou.csr
+
+cp abel-bou.key abel-bou.key.pw
+
+openssl rsa -in abel-bou.key.pw  -out abel-bou.key
+
+cat abel-bou.csr 
+
+openssl x509 -req -in abel-bou.csr -signkey abel-bou.key -out abel-bou.crt
+
+
+write in /etc/nginx/sites-available/default :
+
+"server {
+        listen 443;
+#       listen [::]:80;
+#
+        server_name localhost;
+#
+        root /var/www/default;
+        index index.html index.htm;
+
+        ssl on;
+        ssl_certificate /etc/nginx/ssl/abel-bou.crt;
+        ssl_certificate_key /etc/nginx/ssl/abel-bou.key;
+        ssl_session_timeout 5m;
+        ssl_protocols TLSv1.3;
+        ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+        ssl_prefer_server_ciphers on;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}"
+
+RUN mkdir -p /var/run/nginx
+RUN chmod 775 /var/www/html

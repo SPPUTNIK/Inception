@@ -1,0 +1,28 @@
+FROM debian:buster
+
+# Install required packages
+RUN apt-get update && apt-get install -y php7.3 \
+    php7.3-fpm php7.3-mysql mariadb-client \
+    curl
+
+# Download WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+# Make wp-cli.phar executable and move to /usr/local/bin as 'wp'
+RUN chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp
+
+# Copy configuration files
+COPY ./tools/script.sh /
+COPY ./tools/www.conf /etc/php/7.3/fpm/pool.d/
+
+COPY ./tools/file.txt /var/www/html/
+
+
+# Set permissions on script.sh and create required directories
+RUN chmod +x /script.sh && \
+    mkdir /run/php/ && \
+    mkdir -p /var/www/html/ && \
+    chown -R www-data:www-data /var/www/html/
+
+# Set the entrypoint to script.sh
+CMD ["sh", "/script.sh"]
