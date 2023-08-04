@@ -1,28 +1,19 @@
-FROM debian:buster
+FROM debian:bullseye
 
-# Install required packages
-RUN apt-get update && apt-get install -y php7.3 \
-    php7.3-fpm php7.3-mysql mariadb-client \
-    curl
+WORKDIR /var/www/html
 
-# Download WP-CLI
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+RUN apt-get update && apt-get upgrade -y
 
-# Make wp-cli.phar executable and move to /usr/local/bin as 'wp'
-RUN chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp
+RUN apt-get install wget  php  php-mysql  php-fpm -y
 
-# Copy configuration files
-COPY ./tools/script.sh /
-COPY ./tools/www.conf /etc/php/7.3/fpm/pool.d/
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 
-COPY ./tools/file.txt /var/www/html/
+RUN chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp 
 
+COPY tools/script.sh /home
 
-# Set permissions on script.sh and create required directories
-RUN chmod +x /script.sh && \
-    mkdir /run/php/ && \
-    mkdir -p /var/www/html/ && \
-    chown -R www-data:www-data /var/www/html/
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/
 
-# Set the entrypoint to script.sh
-CMD ["sh", "/script.sh"]
+RUN chmod 777 /home/script.sh
+
+CMD ["sh", "/home/script.sh"]

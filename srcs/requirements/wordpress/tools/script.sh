@@ -1,29 +1,23 @@
 #!/bin/bash
 
-# wp core download --allow-root
-# rm wp-config-sample.ph
-# mkdir /var/www
-# mkdir /var/www/html
-# mv /var/www/html/file.txt /var/www/html/wp-config.php
+mkdir -p /run/php
 
-# sed -i -r "s/database_name_here/$db_name/1"   wp-config.php
-# sed -i -r "s/username_here/$db_user/1"  wp-config.php
-# sed -i -r "s/password_here/$db_pwd/1"    wp-config.php
-# sed -i -r "s/localhost/mariadb/1"    wp-config.php
-cd /var/www/html/
+sleep 20
 
-# Downloading and extracting Wordpress core files to the current directory
-wp core download --allow-root --path="/var/www/html/"
-mv /var/www/html/file.txt /var/www/html/wp-config.php
-wp core install --path="/var/www/html/" --url=$DOMAIN_NAME/ --title=$WP_TITLE --admin_user=$WP_ADMIN_USR --admin_password=$WP_ADMIN_PWD --admin_email=$WP_ADMIN_EMAIL --skip-email --allow-root
-wp user create $WP_USR $WP_EMAIL --role=author --user_pass=$WP_PWD --allow-root
+echo "Wordpress is downloaded"
+wp core download --path=${WP_PATH} --allow-root
 
+chmod -R 777 /var/www/html/wp-content
 
-wp config create	--allow-root \
-                    --dbname=$db_name \
-                    --dbuser=$db_user \
-                    --dbpass=$db_pwd \
-                    --dbhost=mariadb --path='/var/www/html'
+echo "Wordpress Create wp-config.php"
+wp config create --dbname=${DATABASE_NAME} --dbuser=${DATABASE_USER} --dbpass=${DATABASE_USER_PASS} --dbhost=${DB_HOST} --path=${WP_PATH} --allow-root --skip-check
 
-/usr/sbin/php-fpm7.3 -F
-                
+echo "Wordpress installing page"
+wp core install --url=${WP_URL} --title=${WP_TITLE} --admin_user=${ADMIN_NAME} --admin_password=${ADMIN_PASS} --admin_email=${ADMIN_EMAIL} --allow-root --path=${WP_PATH}
+
+echo "Wordpress Create User"
+wp user create ${USER_NAME} ${USER_EMAIL} --user_pass=${USER_PASS} --allow-root --path=${WP_PATH}
+
+echo "Wordpress is Success"
+
+exec /usr/sbin/php-fpm7.4 -F

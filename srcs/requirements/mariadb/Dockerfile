@@ -1,15 +1,11 @@
-FROM debian:buster
+FROM debian:bullseye
 
 RUN apt-get update -y && apt-get upgrade -y
 
 RUN apt-get install mariadb-server -y
 
-# COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY /tools/script.sh /home
 
-COPY script.sh /home
-
-RUN chmod +x /home/script.sh
-
-EXPOSE 3306
+RUN chmod 744 /home/script.sh
 
 CMD ["sh", "/home/script.sh"]
